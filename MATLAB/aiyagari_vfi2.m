@@ -61,7 +61,7 @@ while err >0 & iter<maxiter
                     break
                 end
                     
-                util = (cons^(1-mu)-1)/(1-mu);
+                util = (cons^(1-mu))/(1-mu);
                                 
                 if kcc==Nk2
                     kcc1=Nk;
