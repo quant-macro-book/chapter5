@@ -50,7 +50,7 @@ while err >0 & iter<maxiter
                     kccmax=kcc-1;
                     break
                 end                    
-                util = (cons^(1-mu)-1)/(1-mu);                                
+                util = (cons^(1-mu))/(1-mu);                                
                 vpr=0;
                 for lcc=1:Nl
                     vpr = vpr + prob(lc,lcc)*v(lcc,kcc); 
