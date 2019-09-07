@@ -17,6 +17,10 @@ include("tauchen.jl")
     s::TV # labor productivity grid
     prob::TM # transition matrix
     labor::TF # aggregate labor supply
+
+    # iteration settings
+    maxiter::TI = 2000
+    tol::TF = 1e-5
 end
 
 function main(;Nl::Int = 7, ρ= 0.6, σ= 0.4, M::Int = 2, indE::Int =1)
