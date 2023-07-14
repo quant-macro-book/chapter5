@@ -1,13 +1,13 @@
 %==========================================================================
 % Model of Aiyagari (1994)
-% Written for Quant Macro Book
+% Written for Keizai Seminar #6
 % By Sagiri Kitao
 % Comments welcome --> sagiri.kitao@gmail.com
 %==========================================================================
 
 clc; close all; clear all;
 
-global beta mu delta alpha s Nl prob b gridk kfun labor
+global beta mu delta alpha s Nl prob b gridk kfun 
 
 indE=4;
     % =1 plot capital demand and asset supply curves (same g-grid for state/control) 
@@ -123,15 +123,14 @@ elseif indE==3
     
     ind=0;
     while ind==0
-
         K0=labor*(alpha./(rate0+delta)).^(1/(1-alpha));
+        %K1=aiyagari_vfi1(rate0);
         K1=aiyagari_vfi2(rate0);
         if K0<K1
             ind=1;
         end
         rate0=rate0+adj;
         [ind rate0 K0 K1 K0-K1]
-
     end
     
     % INTEREST RATE AND CAPITAL IN EQUILIBRIUM (SOLUTIONS)
@@ -143,33 +142,34 @@ elseif indE==4
     %==========================================================================
     % COMPUTE K and r in EQ
     %==========================================================================
-
-    % INITIAL GUESS
-    K0=6.8; 
-
+    
+    rate0= 0.025; % INITIAL GUESS
+    
     err=1;
     errTol=0.001;
-    maxiter=100;    
-    iter=1;    
-    adj=0.2;
+    maxiter=200;
+    iter=1;
+    
+    adj=0.001;
     
     while err > errTol & iter<maxiter
+        
+        K0=labor*(alpha/(rate0+delta))^(1/(1-alpha));
+        %K1=aiyagari_vfi1(rate0);
+        K1=aiyagari_vfi2(rate0);
+        
+        err = abs(K0-K1);
                 
-        K1=aiyagari_vfi3(K0);
-
-        err = abs(K0-K1)/K1;
-                               
-        % UPDATE GUESS AS K0+adj*(K1-K0)
-        K0=K0+adj*(K1-K0);
-
+        % (1) UPDATE GUESS AS (r0+r(K1))/2
+        %rtemp=alpha*((K1/labor)^(alpha-1))-delta;
+        %rate0=(rtemp+rate0)/2;
+        
+        % (2) UPDATE GUESS AS r0+adj*(K0-K1)
+        rate0=rate0+adj*(K0-K1);
+        
         iter=iter+1;
-        disp(['iter=',num2str(iter),'  err=',num2str(err),'  rate0=',num2str(K0)])
-
+        
     end    
-
-    if iter==maxiter
-        disp(['WARNING!! iter==maxiter: err=',num2str(err)])
-    end
     
 end
 

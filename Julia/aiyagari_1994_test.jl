@@ -5,7 +5,7 @@
 
 # load functrions made in advance
 include("aiyagari_vfi1.jl")
-include("aiyagari_vfi2.jl")
+include("aiyagari_vfi2_test.jl")
 include("aiyagari_vfi3.jl")
 include("tauchen.jl")
 
@@ -72,9 +72,7 @@ M = 2.0;
 logs,prob,invdist = tauchen(Nl,rho,sig,M);
 s = exp.(logs);
 labor = s'*invdist;
-println(logs)
-println(prob)
-println(invdist)
+println(labor)
 
 # ============================================ #
 #  CREATE CONSTRUCTER THAT CONTAINS PARAMETER  #
@@ -82,42 +80,43 @@ println(invdist)
 
 m = Model(mu,beta,delta,alpha,b,Nl,s,prob,labor) 
 
+aiyagari_vfi2(m,0.01)
 
-if (indE==1) | (indE == 2)
+# if (indE==1) | (indE == 2)
     
-    # ============================================= #
-    #  COMPUTE INDIVIDUAL POLICY FUNCTION AND E(a)  #
-    # ============================================= #
+#     # ============================================= #
+#     #  COMPUTE INDIVIDUAL POLICY FUNCTION AND E(a)  #
+#     # ============================================= #
 
-    NR = 20;
-    minR = -0.03;
-    maxR = (1-m.beta)/m.beta - 0.001;
-    R = collect(range(minR,maxR,length=NR));
-    A = zeros(NR)
+#     NR = 20;
+#     minR = -0.03;
+#     maxR = (1-m.beta)/m.beta - 0.001;
+#     R = collect(range(minR,maxR,length=NR));
+#     A = zeros(NR)
 
-    for i in 1:NR
+#     for i in 1:NR
         
-        if indE == 1
-            A[i] = aiyagari_vfi1(m,R[i])[1]
-        elseif indE == 2
-            A[i] = aiyagari_vfi2(m,R[i])[1]
-        end
+#         if indE == 1
+#             A[i] = aiyagari_vfi1(m,R[i])[1]
+#         elseif indE == 2
+#             A[i] = aiyagari_vfi2(m,R[i])[1]
+#         end
 
-    end
+#     end
 
-    # ========================= #
-    #  COMPUTE K (DEMAND SIDE)  #
-    # ========================= #
+#     # ========================= #
+#     #  COMPUTE K (DEMAND SIDE)  #
+#     # ========================= #
 
-    #R_K = collect(0:0.005:0.05)
-    R_K = collect(range(0,0.05,length=100))
-    K = m.labor*(m.alpha./(R_K .+ m.delta)).^(1/(1-m.alpha));
+#     #R_K = collect(0:0.005:0.05)
+#     R_K = collect(range(0,0.05,length=100))
+#     K = m.labor*(m.alpha./(R_K .+ m.delta)).^(1/(1-m.alpha));
 
-    #plot(A,R,color=:red,linestyle=:dashdot,linewidth=2,
-    #xlabel="E(a) and K",ylabel="Interest rate",xlims=(0-0.01,10*1.01),ylims=(-0.03*1.01,0.05*1.01),legend=false)
-    plot(A,R,color=:red,linestyle=:dashdot,linewidth=2,legend=false)
-    plot!(K,R_K,color=:blue,legend=false)
-    savefig("fig_aiyagari.pdf")
+#     #plot(A,R,color=:red,linestyle=:dashdot,linewidth=2,
+#     #xlabel="E(a) and K",ylabel="Interest rate",xlims=(0-0.01,10*1.01),ylims=(-0.03*1.01,0.05*1.01),legend=false)
+#     plot(A,R,color=:red,linestyle=:dashdot,linewidth=2,legend=false)
+#     plot!(K,R_K,color=:blue,legend=false)
+#     savefig("fig_aiyagari.pdf")
 
 
 # elseif indE == 3

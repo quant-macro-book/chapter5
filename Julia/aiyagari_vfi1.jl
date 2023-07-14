@@ -1,106 +1,135 @@
-function aiyagari_vfi1(p, r)
-
-    # computes aggregate savings given aggregate interest rate r
-
-    #  write wage as a function of interest rate
-    wage = (1-p.α)*((p.α/(r+p.δ))^p.α)^(1/(1-p.α))
+function aiyagari_vfi1(m,r)
+    """
+    ---------------------------------------------------------
+    === Computes Aggregate Savings given Interest Rate r ===
+    ---------------------------------------------------------
+    <input>
+    ・m: model structure that contains parameters
+    ・r: interest Rate
+    <output>
+    ・meank: aggregate savings given interest rate 
+    ・kfun:  policy function
+    ・gridk: asset grid
+    """
+    # メモ: どのパラメータを構造体の中に入れるか
+    # -> beta,mu,delta,alpha,s,Nl,prob,b
+    # kgridに関するパラメータは vfi1とvfi2で異なるから構造体に入れない
+    
+    # write wage as a function of interest rate
+    wage = (1-m.alpha)*((m.alpha/(r+m.delta))^m.alpha)^(1/(1-m.alpha));
 
     # borrowing limit
-    if r<=0
-        ϕ = p.b
+    if r <= 0.0
+        phi = m.b;
     else
-        # b is adhoc
-        # the second term is natural limit
-        ϕ = minimum([p.b, wage*p.s[1]/r])
+        phi = min(m.b,wage*m.s[1]/r);
     end
+
+    # -phi is borrowing limit, b is adhoc
+    # the second term is natural limit
 
     # capital grid (need define in each iteration since it depends on r/phi)
-    Nk   = 100                      # grid size for state and control
-    maxK = 20                      # maximum value of capital grid
-    minK = -ϕ                     # borrowing constraint
+    Nk = 100;                                    # grid size for state and control
+    maxK = 20;                                   # maximum value of capital grid
+    minK = -phi;                                 # borrowing constraint
+    gridk = collect(range(minK,maxK,length=Nk)); # state of assets
 
-    gridk= collect(LinRange(minK, maxK, Nk))       # state of assets
+    # initialize some variables
+    kfunG = zeros(m.Nl,Nk);    # new index of policy function 
+    kfun = zeros(m.Nl,Nk);     # policy function   
+    v = zeros(m.Nl,Nk);        # old value function
+    tv = zeros(m.Nl,Nk);       # new value function
+    kfunG_old = zeros(m.Nl,Nk) # old policy function 
 
-    #  initialize some variables
-    Nl = size(p.s)[1]
-    v      = zeros(Nl,Nk)
-    kfun   = similar(v)
-    kfunG  = zeros(Int64, Nl, Nk)
-    tv     = similar(v)
-    kfunG_old=similar(v)
+    err     = 10;   # error between old policy index and new policy index
+    maxiter = 2000; # maximum number of iteration 
+    iter    = 1;    # iteration counter
 
+    while (err > 0.0) & (iter < maxiter)
 
-    for VFI_iter in 1:p.maxiter
+        # tabulate the utility function such that for zero or negative
+        # consumption utility remains a large negative number so that
+        # such values will never be chosen as utility maximizing
 
-        for (ind_l, val_l) in enumerate(p.s)
-            for (ind_current, val_current) in enumerate(gridk)
-                ind_future_max = Nk
-                vtemp=-1000000*ones(Nk)
+        for kc in 1:Nk # k
+            for lc in 1:m.Nl # l
 
-                for (ind_future, val_future) in enumerate(gridk)
-                    cons = val_l*wage + (1+r)*val_current - val_future
+                kccmax = Nk # maximum index that satisfies c>0.0 
+                vtemp = -1000000 .* ones(Nk);
 
-                    if cons <= 0
-                        ind_future_max = ind_future - 1
-                        break
+                for kcc in 1:Nk # k'
+
+                    # amount of consumption given (k,l,k')
+                    cons = m.s[lc]*wage + (1+r)*gridk[kc] - gridk[kcc] 
+
+                    if cons <= 0.0
+                        # penalty for c<0.0
+                        # once c becomes negative, vtemp will not be updated(=large negative number)
+                        kccmax = kcc-1; 
+                        break  
                     end
 
-                    vpr=0
-                    for ind_l_future in 1:Nl
-                        vpr += p.prob[ind_l,ind_l_future]*v[ind_l_future, ind_future]
+                    util = (cons^(1-mu)) / (1-mu);
+                    
+                    vpr = 0.0; # next period's value function given (l,k')
+                    for lcc in 1:m.Nl # expectation of next period's value function
+                        
+                        vpr += m.prob[lc,lcc]*v[lcc,kcc];
+                    
                     end
 
-                    util = CRRA(cons, p.μ)
-                    vtemp[ind_future] = util + p.β * vpr
+                    vtemp[kcc] = util + m.beta*vpr;
 
                 end
 
-                t1,t2 = findmax(vtemp[1:ind_future_max])
-                tv[ind_l,ind_current]   = t1
-                kfunG[ind_l,ind_current]= t2
-                kfun[ind_l,ind_current] = gridk[t2]
+                # find k' that  solves bellman equation
+                t1,t2 = findmax(vtemp[1:kccmax]); # subject to k' achieves c>0
+                tv[lc,kc] = t1;
+                kfunG[lc,kc] = t2;
+                kfun[lc,kc] = gridk[t2];
+
             end
         end
 
+        v = copy(tv);
+        err = maximum(maximum(abs.(kfunG-kfunG_old)));
+        kfunG_old = copy(kfunG);
+        iter += 1
 
-        err=maximum(maximum(abs.(kfunG-kfunG_old)))
-        v=copy(tv)
-        kfunG_old= copy(kfunG)
-
-        if err == 0
-            break
-        end
     end
 
-    #=============
-     distribution
-    =============#
-    mea0=ones(Nl,Nk)/(Nl*Nk)
-    mea1=zeros(Nl,Nk)
+    # calculate stationary distribution
+    mea0 = ones(m.Nl,Nk)./(m.Nl*Nk); # old distribution
+    mea1 = zeros(m.Nl,Nk); # new distribution
+    err = 1;
+    errTol = 0.00001;
+    maxiter = 2000;
+    iter = 1;
 
-    for iter in 1:p.maxiter
+    while (err > errTol) & (iter < maxiter)
 
-        for ind_current in 1:Nk
-            for ind_l in 1:Nl
-                ind_future = kfunG[ind_l, ind_current]
+        for kc in 1:Nk # k
+            for lc in 1:m.Nl # l
+                
+                kcc = Int(kfunG[lc,kc]) # index of k'(k,l)
 
-                for ind_l_future in 1:Nl
-                    mea1[ind_l_future, ind_future] += p.prob[ind_l,ind_l_future]*mea0[ind_l,ind_current]
+                for lcc in 1:m.Nl # l'
+
+                    mea1[lcc,kcc] += m.prob[lc,lcc]*mea0[lc,kc]
+
+                    
                 end
             end
         end
 
-        err = maximum(maximum(abs.(mea1 - mea0)))
-        mea0 = copy(mea1)
-        mea1 = zeros(Nl, Nk)
+        err = maximum(maximum(abs.(mea1-mea0)));
+        mea0 = copy(mea1);
+        iter += 1;
+        mea1 = zeros(m.Nl,Nk);
 
-        if err <= p.tol
-            break
-        end
     end
 
-    meank= sum(mea0.*kfun)
+    meank = sum(sum(mea0 .* kfun));
 
-
-    return meank, kfun
+    return meank, kfun, gridk
 end

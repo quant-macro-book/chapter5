@@ -1,18 +1,18 @@
-function aiyagari_vfi2(m,r)
+function aiyagari_vfi3(m,K)
     """
     ---------------------------------------------------------
-    === Computes Aggregate Savings given Interest Rate r ===
+    === Computes Aggregate Savings given Aggregate Capital K ===
     ---------------------------------------------------------
     <input>
     ・m: model structure that contains parameters
-    ・r: interest Rate
+    ・K: aggregate capital
     <output>
     ・meank: aggregate savings given interest rate 
     ・kfun:  policy function
     ・gridk: asset grid(state)
     """
 
-    # write wage as a function of interest rate
+    r = m.alpha*((K/m.labor)^(m.alpha-1)) - m.delta;
     wage = (1-m.alpha)*((m.alpha/(r+m.delta))^m.alpha)^(1/(1-m.alpha));
 
     # borrowing limit
@@ -47,9 +47,9 @@ function aiyagari_vfi2(m,r)
     end
 
 
-    # =================================================== #
-    #  SPLIT GRID in gridk2 TO NEARBY TWO GRIDS IN gridk  #
-    # =================================================== #
+    #####################################################
+    # SPLIT GRID in gridk2 TO NEARBY TWO GRIDS IN gridk #
+    #####################################################
     
     # calculate node and weight for interpolation  
     kc1vec=zeros(Nk2);
@@ -164,8 +164,6 @@ function aiyagari_vfi2(m,r)
 
         v = copy(tv);
         err = maximum(abs.(kfunG-kfunG_old));
-        println([iter,err])
-        #flush(stdout)
         kfunG_old = copy(kfunG);
         iter += 1
 

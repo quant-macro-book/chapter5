@@ -119,6 +119,8 @@ function aiyagari_vfi2(m,r)
 
         for kc in 1:Nk # k(STATE)
             for lc in 1:m.Nl # l
+        # kc = 1
+        # lc = 1
 
                 kccmax = Nk2 # maximum index that satisfies c>0.0 
                 vtemp = -1000000 .* ones(Nk2); # initizalization
@@ -157,6 +159,9 @@ function aiyagari_vfi2(m,r)
                 t1,t2 = findmax(vtemp[1:kccmax]); # subject to k' achieves c>0
                 tv[lc,kc] = t1;
                 kfunG[lc,kc] = t2;
+                # println(vtemp)
+                # println(t1)
+                # println(t2)
                 kfun[lc,kc] = gridk2[t2];
 
             end
@@ -171,51 +176,51 @@ function aiyagari_vfi2(m,r)
 
     end
 
-    if iter == maxiter
-        println("WARNING!! @aiyagari_vfi2.jl VFI: iteration reached max: iter=$iter,e rr=$err")
-    end
+    # if iter == maxiter
+    #     println("WARNING!! @aiyagari_vfi2.jl VFI: iteration reached max: iter=$iter,e rr=$err")
+    # end
 
-    # calculate stationary distribution
-    mea0=ones(m.Nl,Nk)/(m.Nl*Nk); # old distribution
-    mea1=zeros(m.Nl,Nk); # new distribution
-    err=1;
-    errTol=0.00001;
-    maxiter=2000;
-    iter=1;
+    # # calculate stationary distribution
+    # mea0=ones(m.Nl,Nk)/(m.Nl*Nk); # old distribution
+    # mea1=zeros(m.Nl,Nk); # new distribution
+    # err=1;
+    # errTol=0.00001;
+    # maxiter=2000;
+    # iter=1;
 
-    while (err > errTol) & (iter < maxiter)
+    # while (err > errTol) & (iter < maxiter)
 
-        for kc in 1:Nk # k
-            for lc in 1:m.Nl # l
+    #     for kc in 1:Nk # k
+    #         for lc in 1:m.Nl # l
                 
-                kcc = Int(kfunG[lc,kc]); # index of k'(k,l)
+    #             kcc = Int(kfunG[lc,kc]); # index of k'(k,l)
 
-                # interpolation of policy function 
-                # split to two grids in gridk
-                kcc1 = Int(kc1vec[kcc]);
-                kcc2 = Int(kc2vec[kcc]);
+    #             # interpolation of policy function 
+    #             # split to two grids in gridk
+    #             kcc1 = Int(kc1vec[kcc]);
+    #             kcc2 = Int(kc2vec[kcc]);
 
-                for lcc in 1:m.Nl # l'
+    #             for lcc in 1:m.Nl # l'
 
-                    mea1[lcc,kcc1] += m.prob[lc,lcc]*prk1vec[kcc]*mea0[lc,kc]
-                    mea1[lcc,kcc2] += m.prob[lc,lcc]*prk2vec[kcc]*mea0[lc,kc]
+    #                 mea1[lcc,kcc1] += m.prob[lc,lcc]*prk1vec[kcc]*mea0[lc,kc]
+    #                 mea1[lcc,kcc2] += m.prob[lc,lcc]*prk2vec[kcc]*mea0[lc,kc]
                     
-                end
-            end
-        end
+    #             end
+    #         end
+    #     end
 
-        err = maximum(abs.(mea1-mea0));
-        mea0 = copy(mea1);
-        iter += 1;
-        mea1 = zeros(m.Nl,Nk);
+    #     err = maximum(abs.(mea1-mea0));
+    #     mea0 = copy(mea1);
+    #     iter += 1;
+    #     mea1 = zeros(m.Nl,Nk);
 
-    end
+    # end
 
-    if iter == maxiter
-        println("WARNING!! @aiyagari_vfi2.jl INVARIANT DIST: iteration reached max: iter=$iter, err=$err")
-    end
+    # if iter == maxiter
+    #     println("WARNING!! @aiyagari_vfi2.jl INVARIANT DIST: iteration reached max: iter=$iter, err=$err")
+    # end
 
-    meank = sum(sum(mea0 .* kfun));
+    # meank = sum(sum(mea0 .* kfun));
 
-    return meank, kfun, gridk
+    # return meank, kfun, gridk
 end

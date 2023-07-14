@@ -1,11 +1,14 @@
-function [meank] = aiyagari_vfi2(r)
+function [meank] = aiyagari_vfi3(K)
 
-% computes aggregate savings given aggregate interest rate r
+% computes aggregate savings given aggregate CAPITAL K
 
-global beta mu delta alpha s Nl prob b gridk kfun 
+global beta mu delta alpha s Nl prob b gridk kfun labor
 
-%   write wage as a function of interest rate 
-wage = (1-alpha)*((alpha/(r+delta))^alpha)^(1/(1-alpha));
+
+%   compute interest rate and wage as a function of capital
+r=alpha*((K/labor)^(alpha-1))-delta;     
+wage=(1-alpha)*((K/labor)^alpha);
+    
 
 % borrowing limit
 if r<=0
