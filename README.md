@@ -2,6 +2,8 @@
 
 ## 第5章：格差をどう説明するか ビューリー・モデルによるアプローチ
 
+### MATLAB
+
 1. Aiyagari (1994) モデルを計算するファイル　`aiyagari_1994.m`, `aiyagari_1994.jl`
 
 2. VFIを行うファイル　`aiyagari_vfi1.m`, `aiyagari_vfi2.m`, `aiyagari_vfi1.jl`, `aiyagari_vfi2.jl`
