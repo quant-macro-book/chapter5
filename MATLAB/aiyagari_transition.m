@@ -734,3 +734,5 @@ saveas(gcf,'Fig6_aiyagari_TR_r.eps','epsc2')
 save('iteration_saver','K_SS0','K_SS1','T_SS0','T_SS1','KT0','TT0','vfun_SS1','mea_SS0')
 save('solution','K_SS0','K_SS1','T_SS0','T_SS1','KT0','TT0','r_SS0','r_SS1','rT0')
 
+save('fig_5_4.mat');
+

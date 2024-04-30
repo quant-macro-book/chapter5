@@ -9,7 +9,7 @@ clc; close all; clear all;
 
 global beta mu delta alpha s Nl prob b gridk kfun labor
 
-indE=4;
+indE=2;
     % =1 plot capital demand and asset supply curves (same g-grid for state/control) 
     % =2 same as 1 but use a finer a-grid for a control 
     % =3 compute eq K and r : method 1 : search over r-grid from the bottom 
@@ -111,6 +111,7 @@ if indE==1 | indE==2
     saveas(gcf,'fig_aiyagari.eps','epsc2')
     saveas(gcf,'fig_aiyagari.pdf','pdf')
     
+save('fig_5_3.mat');
     
 elseif indE==3
     
@@ -193,4 +194,8 @@ if indE==3 | indE==4
     saveas(gcf,'fig_kfun.eps','epsc2')
     saveas(gcf,'fig_kfun.png','png')
     
+save('fig_5_2.mat');
+
 end
+
+
